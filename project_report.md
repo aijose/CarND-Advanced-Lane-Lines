@@ -1,8 +1,8 @@
-## Writeup Template
+## Project 2: Advanced Lane Finding
 
 ---
 
-**Advanced Lane Finding Project**
+**Outline of Project**
 
 The goals / steps of this project are the following:
 
@@ -72,6 +72,13 @@ notebook located in "./P2.ipynb" . Shown below is a a distorted and undistorted 
 <em> Distorted (left) and undistorted (right) chessboard images </em>
 </p>
 
+The code for camera calibration can be found in section **Extract Chessboard
+Corners** and section **Compute Camera Calibration Matrix** of the [juypter
+notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb).
+The code for performing camera calibration was obtained from Udacity's camera
+calibration notebook at this
+[location](https://github.com/udacity/CarND-Camera-Calibration)
+
 ### Pipeline (single images)
 
 To describe the pipeline, the images generated at each step will be provided. The results will be shown for the following image:
@@ -95,6 +102,14 @@ When distortion correction is applied to the above image, the following undistor
 <em> Undistorted image after applying camera calibration corrections </em>
 </p>
 
+The code snippet for performing distortion correction is provided below:
+```python
+undst = cv2.undistort(image, mtx, dist, None, mtx)
+```
+
+In the above code snippet, the matrix `mtx` was obtained in the camera
+calibration step.
+
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
 In order to identify the lane lines, the edges in the image need to be
@@ -116,6 +131,10 @@ and all edges outside this region were blanked out. The resultant image is shown
 <em> Thresholded (left) and masked image (right) obtained applying color transforms and gradients </em>
 </p>
 
+The code for this section can be found in functions `edge_thresholds()` and
+`region_of_interest()` in the **Helper Functions for Project 2** section of the
+[juypter
+notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
@@ -131,27 +150,14 @@ transformation matrix corresponding to this mapping. The relevant code for this
 operation is provided below:
 
 ```python
-src = np.float32(
-    [[(img_size[0] / 2) - 55, img_size[1] / 2 + 100],
-    [((img_size[0] / 6) - 10), img_size[1]],
-    [(img_size[0] * 5 / 6) + 60, img_size[1]],
-    [(img_size[0] / 2 + 55), img_size[1] / 2 + 100]])
-dst = np.float32(
-    [[(img_size[0] / 4), 0],
-    [(img_size[0] / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), img_size[1]],
-    [(img_size[0] * 3 / 4), 0]])
+src = np.float32([[600, 444], [675, 444], [1041, 676], [268, 676]])
+offsetv = 0
+offseth = 300
+img_size = (image.shape[1], image.shape[0])
+dst = np.float32([[offseth, offsetv], [img_size[0]-offseth, offsetv],
+                                 [img_size[0]-offseth, img_size[1]-offsetv],
+                                 [offseth, img_size[1]-offsetv]])
 ```
-
-This resulted in the following source and destination points:
-
-| Source        | Destination   |
-|:-------------:|:-------------:|
-| 585, 460      | 320, 0        |
-| 203, 720      | 320, 720      |
-| 1127, 720     | 960, 720      |
-| 695, 460      | 960, 0        |
-
 The top view image obtained by applying the perspective transform, is shown below:
 
 <p align="center">
@@ -162,6 +168,10 @@ The top view image obtained by applying the perspective transform, is shown belo
 </p>
 
 The fact that the lane lines in the transformed image are parallel to each other gives us confidence that the transformation behaves as expected.
+
+The code for this section can be found in function `topview()` in the
+**Helper Functions for Project 2** section of the  [juypter
+notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
 
@@ -198,6 +208,10 @@ lane lines and lane points.
 <em> Lane lines and lane regions plotted on top view image </em>
 </p>
 
+The code for this section can be found in functions `search_around_poly()`, `find_lane_pixels()`, `fit_poly()` in the **Helper Functions for Project 2**
+section of the  [juypter
+notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
+
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
 The previous section, described the approach used to fit a polynomial to the left
@@ -207,6 +221,10 @@ the center line of the lane. The center line so obtained was fit to a polynomial
 Once the coefficients of the polynomial for the center line were obtained, the
 radius of curvature can be computed using the formula provided below:
 
+The code for this section can be found in functions `convert_to_real()` and
+`measure_curvature()` in the **Helper Functions for Project 2** section of the
+[juypter
+notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
@@ -222,6 +240,12 @@ shown below:
 <em> Lane region shaded in top view (left) and original image (right)  </em>
 </p>
 
+
+The code outlining all the steps in the pipeline for generating the final  image
+containing the lane region (highlighted in green) is contained in the function
+`process_single_image()` in the **Helper Functions for Project 2** section of
+the [juypter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
+
 ---
 
 ### Pipeline (video)
@@ -233,6 +257,9 @@ approach can be used to process a video by processing the individual images that
 constitute the video. A link to the processed video is provided below:
 
 Here's a [link to my video result](./project_video.mp4)
+
+The code processing the video can be found in the section **Create Video** section of
+the [juypter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 ---
 
