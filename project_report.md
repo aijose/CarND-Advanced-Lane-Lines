@@ -26,6 +26,7 @@ The goals / steps of this project are the following:
 [masked]: ./output_images/masked_image.png "Undistorted"
 [topview]: ./output_images/topview.png "Undistorted"
 [topregion]: ./output_images/topview_region.png "Undistorted"
+[stackwindows]: ./output_images/windowed_image.png "Undistorted"
 [weighted]: ./output_images/weighted_image.png "Undistorted"
 [annotated]: ./output_images/annotated_image.png "Undistorted"
 [video1]: ./project_video.mp4 "Video"
@@ -65,6 +66,10 @@ notebook located in "./P2.ipynb" . Shown below is a a distorted and undistorted 
 
 ![alt text][distorted]
 ![alt text][undistchess]
+<p align="center">
+<img src="camera_cal/calibration1.jpg" width="45%">
+<img src="output_images/undistorted_chessboard.jpg" width="45%">
+</p>
 
 ### Pipeline (single images)
 
@@ -160,10 +165,12 @@ y-location is treated as the independent variable and the x-location is treated
 as the independent variable for fitting the polynomial. The `polyfit()` function
 is used to determine the coefficients of the polynomial.
 
-Once polynomials for
+The figure below shows the top view with the stacked windows along with
+lane lines and lane points.
 
-
-![alt text][image5]
+<p align="center">
+<img src="output_images/windowed_image.png" width="75%">
+</p>
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
@@ -173,6 +180,7 @@ of the left and right lanes were averaged to obtained the curve corresponding to
 the center line of the lane. The center line so obtained was fit to a polynomials.
 Once the coefficients of the polynomial for the center line were obtained, the
 radius of curvature can be computed using the formula provided below:
+
 
 
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
@@ -214,5 +222,3 @@ along with a description of how they were addressed:
 While the current project achieves satisfactory results, it is not perfect. Some
 of the shortcomings of the current approach are outlined below, along with ideas
 for improving the algorithm:
-
-*
