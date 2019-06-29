@@ -64,11 +64,12 @@ dst = cv2.undistort(img, mtx, dist, None, mtx)
 The code for this step is contained in the XXXX code cell of the IPython
 notebook located in "./P2.ipynb" . Shown below is a a distorted and undistorted image:
 
-![alt text][distorted]
-![alt text][undistchess]
 <p align="center">
-<img src="camera_cal/calibration1.jpg" width="45%">
-<img src="output_images/undistorted_chessboard.jpg" width="45%">
+<img src="camera_cal/calibration1.jpg" width="45%" alt>
+<img src="report_images/undistorted_chessboard.jpg" width="45%">
+</p>
+<p align="center">
+<em> Distorted (left) and undistorted (right) chessboard images </em>
 </p>
 
 ### Pipeline (single images)
