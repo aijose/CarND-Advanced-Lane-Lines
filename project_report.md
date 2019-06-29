@@ -75,14 +75,25 @@ notebook located in "./P2.ipynb" . Shown below is a a distorted and undistorted 
 ### Pipeline (single images)
 
 To describe the pipeline, the images generated at each step will be provided. The results will be shown for the following image:
-![alt text][original]
+
+<p align="center">
+<img src="report_images/original_image.png" width="75%" alt>
+</p>
+<p align="center">
+<em> Original image </em>
+</p>
 
 #### 1. Provide an example of a distortion-corrected image.
 
 
 When distortion correction is applied to the above image, the following undistorted image is obtained.
 
-![alt text][undist]
+<p align="center">
+<img src="report_images/undistorted.png" width="75%" alt>
+</p>
+<p align="center">
+<em> Undistorted image after applying camera calibration corrections </em>
+</p>
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
@@ -94,12 +105,22 @@ flexibility in capturing lane markings while excluding sharp gradients such as
 those associated with dark regions in the image. Shown below is the image obtained by
 using the Sobel and color gradient approaches:
 
-![alt text][edges]
+<p align="center">
+<img src="report_images/edges.png" width="75%" alt>
+</p>
+<p align="center">
+<em> Thresholded binary image obtained applying color transforms and gradients </em>
+</p>
 
 The edge detection algorithm captures all edges. Since we are only interested in the lane lines we can eliminate edges associated with background and vehicles by choosing a region of intereest in the image where we expect the lane lines to be present. This is based on the assumption that the position of the lane lines with respect to the vehicle camera does not change much. A quadrilateral region was selected
 and all edges outside this region were blanked out. The resultant image is shown below:
 
-![alt text][masked]
+<p align="center">
+<img src="report_images/masked_image.png" width="75%" alt>
+</p>
+<p align="center">
+<em> Image obtained by eliminating edges outside the region of interest </em>
+</p>
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
@@ -138,7 +159,12 @@ This resulted in the following source and destination points:
 
 The top view image obtained by applying the perspective transform, is shown below:
 
-![alt text][topview]
+<p align="center">
+<img src="report_images/topview.png" width="75%" alt>
+</p>
+<p align="center">
+<em> Top view image obtained by applying perspective transform </em>
+</p>
 
 The fact that the lane lines in the transformed image are parallel to each other gives us confidence that the transformation behaves as expected.
 
@@ -170,7 +196,11 @@ The figure below shows the top view with the stacked windows along with
 lane lines and lane points.
 
 <p align="center">
-<img src="output_images/windowed_image.png" width="75%">
+<img src="output_images/windowed_image.png" width="45%">
+<img src="output_images/topview_region.png" width="45%">
+</p>
+<p align="center">
+<em> Lane lines and lane regions plotted on top view image </em>
 </p>
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
@@ -190,12 +220,12 @@ Once the lane regions are identified on the top view image, they are mapped
 back onto a blank image that has the same dimensions as the original image, as
 shown below:
 
-![alt text][topregion]
-
-Finally, the above image is combined with the original image with suitable weights.
-The resultant image is shown below:
-
-![alt text][weighted]
+<p align="center">
+<img src="output_images/weighted_image.png" width="75%">
+</p>
+<p align="center">
+<em> Lane region shaded in top view (left) and original image (right)  </em>
+</p>
 
 ---
 
