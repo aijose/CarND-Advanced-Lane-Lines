@@ -105,22 +105,17 @@ flexibility in capturing lane markings while excluding sharp gradients such as
 those associated with dark regions in the image. Shown below is the image obtained by
 using the Sobel and color gradient approaches:
 
-<p align="center">
-<img src="report_images/edges.png" width="75%" alt>
-</p>
-<p align="center">
-<em> Thresholded binary image obtained applying color transforms and gradients </em>
-</p>
-
-The edge detection algorithm captures all edges. Since we are only interested in the lane lines we can eliminate edges associated with background and vehicles by choosing a region of intereest in the image where we expect the lane lines to be present. This is based on the assumption that the position of the lane lines with respect to the vehicle camera does not change much. A quadrilateral region was selected
+The edge detection algorithm captures all edges. Since we are only interested in the lane lines we can eliminate edges associated with background and vehicles by choosing a region of interest in the image where we expect the lane lines to be present. This is based on the assumption that the position of the lane lines with respect to the vehicle camera does not change much. A quadrilateral region was selected
 and all edges outside this region were blanked out. The resultant image is shown below:
 
 <p align="center">
-<img src="report_images/masked_image.png" width="75%" alt>
+<img src="report_images/edges.png" width="45%" alt>
+<img src="report_images/masked_image.png" width="45%" alt>
 </p>
 <p align="center">
-<em> Image obtained by eliminating edges outside the region of interest </em>
+<em> Thresholded (left) and masked image (right) obtained applying color transforms and gradients </em>
 </p>
+
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
@@ -248,8 +243,43 @@ Here's a [link to my video result](./project_video.mp4)
 Outlined below are some of the issues faced while implementing this project
 along with a description of how they were addressed:
 
-*
+* Initially the edge detection algorithm primarily used the Sobel gradients and
+  saturation channel to detect the edges. However, one of the challenges
+  with using the saturation threshold is that it captures shadows and dark
+  regions in the lane. Edges formed by shadows and other lane irregularities
+  introduced inaccuracies in the detection of lane lines. To eliminate the
+  effect of shadows, the saturation threshold was combined with the red channel.
+  Only edges that satisfied the saturation threshold AND the red channel
+  thresholds were included. This made the algorithm more robust to shadows
+  and other lane irregularities.
+
+* Another source of inaccuracies was due to the presence of dark lines on the
+  road which were captured by the Sobel filter. Since these dark lines where
+  close to the lane lines, they introduced errors in the calculation of the
+  lane lines. To overcome this the lower Sobel threshold was increased
+  sufficiently exclude the dark lines while retaining lane lines.
 
 While the current project achieves satisfactory results, it is not perfect. Some
 of the shortcomings of the current approach are outlined below, along with ideas
 for improving the algorithm:
+
+* The current approach assumes that the lane curve does not have multiple peaks
+  or troughs. For some winding roads a second order polynomial may not be adequate
+  to capture the shape of the lane correctly. One way to make the current algorithm
+  more robust is to use cubic splines or multiple curves to accurately capture
+  highly winding roads.
+
+* If there are sharp turns in the road, the lanes will fall outside the masked
+  region of interest and will not be captured.  To handle these situations it
+  may be necessary to expand the region of interest to include the entire
+  horizontal span of the image and only exclude some of the top region. This
+  will require more robust techniques to distinguish between edges belonging to
+  lane lines and other objects or markings.
+
+* The present approach does not use information from previous video frames when
+  computing the lane lines for the current video frame. Using information from
+  previous frames can be used save computational effort but can also help in
+  mitigate the effect of new road structures or markings that suddenly pop up
+  and disrupt the accurate calculation of lane lines. This will also prove
+  helpful in scenarios where the lane lines are covered by leaves or rendered
+  indistinguishable due to strong lighting or other factors.
