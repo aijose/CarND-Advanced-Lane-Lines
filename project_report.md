@@ -15,21 +15,10 @@ The goals / steps of this project are the following:
 * Warp the detected lane boundaries back onto the original image.
 * Output visual display of the lane boundaries and numerical estimation of lane curvature and vehicle position.
 
-[//]: # (Image References)
-
-[distorted]: ./camera_cal/calibration1.jpg "Undistorted"
-[undistchess]: ./output_images/undistorted_chessboard.jpg "Undistorted"
-[original]: ./output_images/original_image.png "Undistorted"
-[undist]: ./output_images/undistorted.png "Undistorted"
-[edges]: ./output_images/edges.png "Undistorted"
-[lane]: ./output_images/lane_region.png "Undistorted"
-[masked]: ./output_images/masked_image.png "Undistorted"
-[topview]: ./output_images/topview.png "Undistorted"
-[topregion]: ./output_images/topview_region.png "Undistorted"
-[stackwindows]: ./output_images/windowed_image.png "Undistorted"
-[weighted]: ./output_images/weighted_image.png "Undistorted"
-[annotated]: ./output_images/annotated_image.png "Undistorted"
-[video1]: ./project_video.mp4 "Video"
+The code for this project can be found in the [jupyter
+notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
+that is part of the [project
+repository](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb).
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 
@@ -73,7 +62,7 @@ notebook located in "./P2.ipynb" . Shown below is a a distorted and undistorted 
 </p>
 
 The code for camera calibration can be found in section **Extract Chessboard
-Corners** and section **Compute Camera Calibration Matrix** of the [juypter
+Corners** and section **Compute Camera Calibration Matrix** of the [jupyter
 notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb).
 The code for performing camera calibration was obtained from Udacity's camera
 calibration notebook at this
@@ -102,13 +91,20 @@ When distortion correction is applied to the above image, the following undistor
 <em> Undistorted image after applying camera calibration corrections </em>
 </p>
 
+For the present work, the distorted and undistorted images do not show
+significant differences. The deviations are usually in regions close to the
+camera such as the car dashboard and do not seem to affect the most relevant
+portion of the image -- the lane lines. Given the small differences between the
+distorted and undistorted images the use of distortion correction may not
+provide significant benefits in the context of this project.
+
 The code snippet for performing distortion correction is provided below:
 ```python
 undst = cv2.undistort(image, mtx, dist, None, mtx)
 ```
 
 In the above code snippet, the matrix `mtx` was obtained in the camera
-calibration step.
+calibration step described earlier.
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
@@ -116,12 +112,53 @@ In order to identify the lane lines, the edges in the image need to be
 identified. The Sobel algorithm was used to identify gradients in the x and y
 direction. The RGB color scale was used for performing these operations.
 However, using the HLS color representation has been known offer more
-flexibility in capturing lane markings while excluding sharp gradients such as
-those associated with dark regions in the image. Shown below is the image obtained by
-using the Sobel and color gradient approaches:
+flexibility in capturing lane markings while excluding irregularities such as
+those associated with dark lines in the image. Based on experiments performed
+with different color channels and gradients the following key points may be
+noted:
 
-The edge detection algorithm captures all edges. Since we are only interested in the lane lines we can eliminate edges associated with background and vehicles by choosing a region of interest in the image where we expect the lane lines to be present. This is based on the assumption that the position of the lane lines with respect to the vehicle camera does not change much. A quadrilateral region was selected
-and all edges outside this region were blanked out. The resultant image is shown below:
+* **S channel:**
+
+  * Good: It does a good job of identifying the lane lines. While ignoring
+    lighter shades in the road. This makes it useful for retaining lane lines
+    while ignoring irrelevant colors in the road or background.
+
+  * Bad: It is not as effective as the Sobel gradient filter in capturing lane
+    lines that are thin. Using the S-channel alone can therefore ignore some of
+    the dashed lines in some of the video frames, thereby leading to failure of
+    the algorithm.
+
+* **Sobel Gradient:** 
+
+  * Good: It is very effective in capturing gradients in the image while
+    ignoring regions that do not contain gradients.
+
+  * Bad: Because it is good in picking up gradients, it can also pickup
+    gradients that that are not necessarily lane lines (e.g, sharp lines 
+    on the road)
+
+* **Red Channel:** 
+
+  * Good: Since red is a component in both white and yellow colors (which are
+    the colors of the lanes) it can be used in combination with other filters
+    to exclude regions that are not lanes while retaining edges that are lanes.
+
+  * Bad: It tends to retain all regions that contain red component and does not
+    identify gradients.
+
+Setting the thresholds for the red channel, Sobel gradient and S-channels and
+finding a way to combine them to capture relevant edges while ignoring
+irrelevant details required some experimentation. Further discussion of some of
+the challenges faced in this process is discussed i the later part of this
+report.
+
+The edge detection algorithm captures all edges. Since we are only interested
+in the lane lines, we can eliminate edges associated with background and
+vehicles by choosing a region of interest in the image where we expect the lane
+lines to be present. This is based on the assumption that the position of the
+lane lines with respect to the vehicle camera does not change much. A
+quadrilateral region was selected and all edges outside this region were
+blanked out. The resultant image is shown below:
 
 <p align="center">
 <img src="report_images/edges.png" width="45%" alt>
@@ -133,7 +170,7 @@ and all edges outside this region were blanked out. The resultant image is shown
 
 The code for this section can be found in functions `edge_thresholds()` and
 `region_of_interest()` in the **Helper Functions for Project 2** section of the
-[juypter
+[jupyter
 notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
@@ -154,9 +191,10 @@ src = np.float32([[600, 444], [675, 444], [1041, 676], [268, 676]])
 offsetv = 0
 offseth = 300
 img_size = (image.shape[1], image.shape[0])
-dst = np.float32([[offseth, offsetv], [img_size[0]-offseth, offsetv],
-                                 [img_size[0]-offseth, img_size[1]-offsetv],
-                                 [offseth, img_size[1]-offsetv]])
+dst = np.float32([[offseth,             offsetv], 
+                  [img_size[0]-offseth, offsetv],
+                  [img_size[0]-offseth, img_size[1]-offsetv],
+                  [offseth,             img_size[1]-offsetv]])
 ```
 The top view image obtained by applying the perspective transform, is shown below:
 
@@ -170,7 +208,7 @@ The top view image obtained by applying the perspective transform, is shown belo
 The fact that the lane lines in the transformed image are parallel to each other gives us confidence that the transformation behaves as expected.
 
 The code for this section can be found in function `topview()` in the
-**Helper Functions for Project 2** section of the  [juypter
+**Helper Functions for Project 2** section of the  [jupyter
 notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 #### 4. Describe how (and identify where in your code) you identified lane-line pixels and fit their positions with a polynomial?
@@ -209,21 +247,30 @@ lane lines and lane points.
 </p>
 
 The code for this section can be found in functions `search_around_poly()`, `find_lane_pixels()`, `fit_poly()` in the **Helper Functions for Project 2**
-section of the  [juypter
+section of the  [jupyter
 notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-The previous section, described the approach used to fit a polynomial to the left
-and right lanes. To compute the radius of curvature of the lane, the x-coordinates
-of the left and right lanes were averaged to obtained the curve corresponding to
-the center line of the lane. The center line so obtained was fit to a polynomials.
-Once the coefficients of the polynomial for the center line were obtained, the
-radius of curvature can be computed using the formula provided below:
+The previous section, described the approach used to fit a polynomial to the
+left and right lanes. To compute the radius of curvature of the lane, the
+x-coordinates of the left and right lanes were averaged to obtained the curve
+corresponding to the center line of the lane. The center line so obtained was
+fit to a polynomial.  The polynomial so obtained is in the image coordinates.
+In order to compute the radius of curvature in the real world, the polynomial
+has to be transformed from the image coordinates to the real world coordinates.
+This can be accomplished by using scaling factors that scale from pixels to
+meters for both x and y coordinate directions. The derivation of the
+transformation equations can be found in the [jupyter
+notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
+in the section titled **Derivation of polynomial transformation from image
+coordinates to real coordinates**.  Once the coefficients of the polynomial for
+the center line were obtained, the radius of curvature can be computed from the
+coefficients.
 
 The code for this section can be found in functions `convert_to_real()` and
 `measure_curvature()` in the **Helper Functions for Project 2** section of the
-[juypter
+[jupyter
 notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 
@@ -244,7 +291,7 @@ shown below:
 The code outlining all the steps in the pipeline for generating the final  image
 containing the lane region (highlighted in green) is contained in the function
 `process_single_image()` in the **Helper Functions for Project 2** section of
-the [juypter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
+the [jupyter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 ---
 
@@ -259,7 +306,7 @@ constitute the video. A link to the processed video is provided below:
 Here's a [link to my video result](./project_video.mp4)
 
 The code processing the video can be found in the section **Create Video** section of
-the [juypter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
+the [jupyter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 ---
 
