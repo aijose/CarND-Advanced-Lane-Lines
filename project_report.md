@@ -31,28 +31,24 @@ repository](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.i
 #### 1. Briefly state how you computed the camera matrix and distortion coefficients. Provide an example of a distortion corrected calibration image.
 
 The first preparatory step is to calibrate the camera to remove the effects of
-distortions arising from the nature and alignment of the cameral lenses. This is
+distortions arising from the nature and alignment of the camera lenses. This is
 typically done by taking several photographs of a chessboard on a flat surface
-and detecting the corners in the chessboard using OpenCVs built in fuctions.
+and detecting the corners in the chessboard using OpenCVs built in functions.
 Once four key corners are identified on the image (i.e., image points) they are
 used, along with the corresponding points on the object (i.e., the object
-points) to calibrate the camera. The procedure is well illustrated in this
-github repository. The calibration step generates the calibration matrix which
-can then be used to undistort any other images taken by the same camera. The key
-code snippet is provided below:
-
-I start by preparing "object points", which will be the (x, y, z) coordinates of the chessboard corners in the world. Here I am assuming the chessboard is fixed on the (x, y) plane at z=0, such that the object points are the same for each calibration image.  Thus, `objp` is just a replicated array of coordinates, and `objpoints` will be appended with a copy of it every time I successfully detect all chessboard corners in a test image.  `imgpoints` will be appended with the (x, y) pixel position of each of the corners in the image plane with each successful chessboard detection.  
-
-I then used the output `objpoints` and `imgpoints` to compute the camera calibration and distortion coefficients using the `cv2.calibrateCamera()` function.  I applied this distortion correction to the test image using the `cv2.undistort()` function and obtained this result:
+points) to calibrate the camera. The object points and image points are provided
+to OpenCVs `cv2.calibrateCamera()` function. The calibration step generates the
+calibration matrix which can then be used to undistort any other images taken by
+the same camera. The key code snippet is provided below:
 
 ```python
 
 ret, mtx, dist, rvecs, tvecs = cv2.calibrateCamera(objpoints, imgpoints, img_size,None,None)
 dst = cv2.undistort(img, mtx, dist, None, mtx)
 ```
-The code for this step is contained in the XXXX code cell of the IPython
-notebook located in "./P2.ipynb" . Shown below is a a distorted and undistorted image:
 
+Shown below is a sample distorted and undistorted image obtained by using the
+aforementioned approach:
 <p align="center">
 <img src="camera_cal/calibration1.jpg" width="45%" alt>
 <img src="report_images/undistorted_chessboard.jpg" width="45%">
@@ -70,7 +66,7 @@ calibration notebook at this
 
 ### Pipeline (single images)
 
-To describe the pipeline, the images generated at each step will be provided. The results will be shown for the following image:
+To describe the pipeline, the images generated at each step will be provided. The results will be generated for the following image:
 
 <p align="center">
 <img src="report_images/original_image.png" width="75%" alt>
@@ -81,8 +77,10 @@ To describe the pipeline, the images generated at each step will be provided. Th
 
 #### 1. Provide an example of a distortion-corrected image.
 
-
-When distortion correction is applied to the above image, the following undistorted image is obtained.
+In the previous section, the camera calibration procedure was outlined. The
+matrix obtained during the calibration step can be used to undistort images by
+using the `cv2.undistort()` function. When distortion correction is applied to
+the original image, the following undistorted image was obtained.
 
 <p align="center">
 <img src="report_images/undistorted.png" width="75%" alt>
@@ -93,7 +91,7 @@ When distortion correction is applied to the above image, the following undistor
 
 For the present work, the distorted and undistorted images do not show
 significant differences. The deviations are usually in regions close to the
-camera such as the car dashboard and do not seem to affect the most relevant
+camera, such as the car dashboard, and do not seem to affect the most relevant
 portion of the image -- the lane lines. Given the small differences between the
 distorted and undistorted images the use of distortion correction may not
 provide significant benefits in the context of this project.
@@ -109,24 +107,27 @@ calibration step described earlier.
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
 
 In order to identify the lane lines, the edges in the image need to be
-identified. The Sobel algorithm was used to identify gradients in the x and y
-direction. The RGB color scale was used for performing these operations.
-However, using the HLS color representation has been known offer more
-flexibility in capturing lane markings while excluding irregularities such as
-those associated with dark lines in the image. Based on experiments performed
-with different color channels and gradients the following key points may be
-noted:
+identified. The Sobel algorithm was used to identify gradients in the x
+direction (since the lane lines are typically vertical). The RGB image was
+converted to grayscale to perform this operation. However, using specific color
+channels in the RGB (Red, Blue, Green) or HLS representation of the image    can
+provide additional room for optimizing the edge detection process. In the
+present work, binary images were generated for the R-channel, S-channel and
+Sobel X-gradient by applying thresholds. These were used as the basis for coming
+up with a combined binary image that includes the important features of the
+image while minimizing the less relevant features. Based on experiments
+performed on the aforementioned three channels the following key points
+may be noted:
 
 * **S channel:**
 
-  * **Good:** It does a good job of identifying the lane lines. While ignoring
-    lighter shades in the road. This makes it useful for retaining lane lines
-    while ignoring irrelevant colors in the road or background.
+  * **Good:** It does a good job of retaining lane lines
+    while being color agnostic.
 
-  * **Bad:** It is not as effective as the Sobel gradient filter in capturing lane
+  * **Bad:** It is not as effective as the Sobel X-gradient filter in capturing lane
     lines that are thin. Using the S-channel alone can therefore ignore some of
-    the dashed lines in some of the video frames, thereby leading to failure of
-    the algorithm.
+    the dashed lane lines in some of the video frames, which could lead to
+    failure of the algorithm.
 
 * **Sobel Gradient:**
 
@@ -151,14 +152,13 @@ finding a way to combine them to capture relevant edges while ignoring
 irrelevant details required some experimentation. In the present work the following
 steps were followed to form a combined binary image of the edges:
 
-* Three channel/filter images were created -- Red, S-channel, Sobel gradient
+* Three binary images were created -- Red, S-channel, Sobel X-gradient -- by
+  applying suitable thresholds based on experimentation.
 
-* Suitable thresholds were applied to create a binary image for each channel by
-  experimenting with test images.
-
-* The final binary image was formed by including performing and AND (&) operator
-  between the Red channel and the S-channel and combining the result with
-  the Sobel binary image using an OR (|) operator. Further discussion of some of the challenges faced in this process and the motivation behind the choices made
+* The final binary image was formed by including performing an AND (&) operator
+  between the Red binary and the S-binary and combining the result with
+  the Sobel binary using an OR (|) operator. Further discussion of some of the
+  challenges faced in this process and the motivation behind the choices made
   is provided in the later part of this report.
 
 The edge detection algorithm captures all edges. Since we are only interested
@@ -167,14 +167,14 @@ vehicles by choosing a region of interest in the image where we expect the lane
 lines to be present. This is based on the assumption that the position of the
 lane lines with respect to the vehicle camera does not change much. A
 quadrilateral region was selected and all edges outside this region were
-blanked out. The resultant image is shown below:
+blanked out. The resultant images are shown below:
 
 <p align="center">
 <img src="report_images/edges.png" width="45%" alt>
 <img src="report_images/masked_image.png" width="45%" alt>
 </p>
 <p align="center">
-<em> Thresholded (left) and masked image (right) obtained applying color transforms and gradients </em>
+<em> Thresholded (left) and masked image (right) obtained by applying color transforms and gradients </em>
 </p>
 
 The code for this section can be found in functions `edge_thresholds()` and
@@ -184,15 +184,14 @@ notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipy
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The masked region obtained in the previous step is a warped image of the lanes. Because of the angle of the camera with respect to the road, the left lane typically appears to have a positive slope while the right lane appears to have a negative slope. In order to capture the lane properties such as the radius of curvature, it is necessary to have a top view of the road. This can be accomplished using a perspective transform.
+The masked image obtained in the previous step is a view of the lanes when seen
+from the front. Because of the angle of the camera with respect to the road, the left lane typically appears to have a positive slope while the right lane appears to have a negative slope. In order to capture the lane properties such as the radius of curvature, it is necessary to have a top view of the road. This can be accomplished using a perspective transform.
 
 In order to perform a perspective transform, a quadrilateral region in the
 original image is mapped onto a rectangular region in the transformed image. One
 way to choose four points (source points) is to take a sample image and identify
-points on a straight line lane. We then map these points on to a rectangular
-region, specified by four destination points. The `warpPerspective()` function
-is then used to  extract the transformation matrix and the inverse
-transformation matrix corresponding to this mapping. The relevant code for this
+points on a lane line. We then map these points on to a rectangular
+region, specified by four destination points. The relevant code for this
 operation is provided below:
 
 ```python
@@ -205,7 +204,10 @@ dst = np.float32([[offseth,             offsetv],
                   [img_size[0]-offseth, img_size[1]-offsetv],
                   [offseth,             img_size[1]-offsetv]])
 ```
-The top view image obtained by applying the perspective transform, is shown below:
+
+The `warpPerspective()` function is then used to  extract the transformation
+matrix and the inverse transformation matrix corresponding to this mapping.  The
+top view image obtained by applying the perspective transform, is shown below:
 
 <p align="center">
 <img src="report_images/topview.png" width="75%" alt>
@@ -225,9 +227,9 @@ notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipy
 Once the topview is obtained, the lane lines need to be identified. To do this,
 a histogram of is generated, which sums the white pixels in the y-direction for
 each x-location in the image. The two peaks in the histogram may be assumed to
-be close to the location of the two lane lines. The lane pixels are analyzed by
+be close to the location of the base of the two lane lines. The lane pixels are analyzed by
 using rectangular windows which are placed where we expect the lane lines to be
-present. In the present work, 9 windows were staked one on top of the other to
+present. In the present work, 9 windows were stacked one on top of the other to
 track the lane lines along the image.
 
 The first window is placed at the bottom of the image with its center at the
@@ -238,14 +240,13 @@ is computed. The center of the next lane window is then adjusted to match averag
 x-coordinate of its predecessor window. This ensures that the windows adjusts to
 the lane location if there is significant curvature.
 
-Once all the lane points are computed using the stacked windows, a polynomial is
-fit to the left and right lane points. Since the lane is typically vertical, the
-y-location is treated as the independent variable and the x-location is treated
-as the independent variable for fitting the polynomial. The `polyfit()` function
-is used to determine the coefficients of the polynomial.
-
-The figure below shows the top view with the stacked windows along with
-lane lines and lane points.
+Once all the lane points are extracted using the stacked windows, a polynomial
+is fit to the left and right lane points. Since the lane is typically vertical,
+the y-location is treated as the independent variable and the x-location is
+treated as the independent variable for fitting the polynomial. To compute the
+radius of curvature of the lane, the middle line for the lane needs to be computed.
+This was obtained by averaging the fitted x-coordinates of the left and right
+lanes. The figure below shows the results obtained.
 
 <p align="center">
 <img src="output_images/windowed_image.png" width="45%">
@@ -255,17 +256,17 @@ lane lines and lane points.
 <em> Lane lines and lane regions plotted on top view image </em>
 </p>
 
-The code for this section can be found in functions `search_around_poly()`, `find_lane_pixels()`, `fit_poly()` in the **Helper Functions for Project 2**
+The fitted left, right and center lines are represented by the pink, purple
+and yellow lines in the left image. The lane region is identified by the green
+region in the right image.
+
+The code for this section can be found in functions `search_around_poly()`, `find_lane_pixels()` and  `fit_poly()` in the **Helper Functions for Project 2**
 section of the  [jupyter
 notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 #### 5. Describe how (and identify where in your code) you calculated the radius of curvature of the lane and the position of the vehicle with respect to center.
 
-The previous section, described the approach used to fit a polynomial to the
-left and right lanes. To compute the radius of curvature of the lane, the
-x-coordinates of the left and right lanes were averaged to obtained the curve
-corresponding to the center line of the lane. The center line so obtained was
-fit to a polynomial.  The polynomial so obtained is in the image coordinates.
+The polynomial coefficients obtained in the previous step are in the image coordinates.
 In order to compute the radius of curvature in the real world, the polynomial
 has to be transformed from the image coordinates to the real world coordinates.
 This can be accomplished by using scaling factors that scale from pixels to
@@ -275,7 +276,11 @@ notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipy
 in the section titled **Derivation of polynomial transformation from image
 coordinates to real coordinates**.  Once the coefficients of the polynomial for
 the center line were obtained, the radius of curvature can be computed from the
-coefficients.
+coefficients using the code snippet provided below:
+
+```python
+poly_curverad = ((1.0 + (2.0*poly_fit[0]*y_eval + poly_fit[1])**2)**1.5)/(2.0*poly_fit[0])
+```
 
 The code for this section can be found in functions `convert_to_real()` and
 `measure_curvature()` in the **Helper Functions for Project 2** section of the
@@ -286,8 +291,10 @@ notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipy
 #### 6. Provide an example image of your result plotted back down onto the road such that the lane area is identified clearly.
 
 Once the lane regions are identified on the top view image, they are mapped
-back onto a blank image that has the same dimensions as the original image, as
-shown below:
+back onto a blank image that has the same dimensions as the original image using
+the inverse perspective transform. The resultant image is then weighted with the
+original image to obtain the final result that contains the lane region
+highlighted in green. The resulting image is shown below:
 
 <p align="center">
 <img src="output_images/weighted_image.png" width="75%">
@@ -296,9 +303,8 @@ shown below:
 <em> Lane region shaded in top view (left) and original image (right)  </em>
 </p>
 
-
 The code outlining all the steps in the pipeline for generating the final  image
-containing the lane region (highlighted in green) is contained in the function
+containing the lane region highlighted in green is contained in the function
 `process_single_image()` in the **Helper Functions for Project 2** section of
 the [jupyter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
@@ -325,9 +331,9 @@ the [jupyter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/
 Outlined below are some of the issues faced while implementing this project
 along with a description of how they were addressed:
 
-* Initially the edge detection algorithm primarily used the Sobel gradients and
-  saturation channel to detect the edges. However, one of the challenges
-  with using the saturation threshold is that it captures shadows and dark
+* Initially the edge detection algorithm primarily used the Sobel X-gradients and
+  saturation (S) channel to detect the edges. However, one of the challenges
+  with using the saturation channel is that it captures shadows and dark
   regions in the lane. Edges formed by shadows and other lane irregularities
   introduced inaccuracies in the detection of lane lines. To eliminate the
   effect of shadows, the saturation threshold was combined with the red channel.
@@ -335,18 +341,19 @@ along with a description of how they were addressed:
   thresholds were included. This made the algorithm more robust to shadows
   and other lane irregularities.
 
-* Another source of inaccuracies was due to the presence of dark lines on the
+* Another source of inaccuracies was due to the presence of non-lane-line
+  gradients on the
   road which were captured by the Sobel filter. Since these dark lines where
   close to the lane lines, they introduced errors in the calculation of the
-  lane lines. To overcome this the lower Sobel threshold was increased
+  lane lines. To fix this, the lower Sobel threshold was increased
   sufficiently exclude the dark lines while retaining lane lines.
 
 While the current project achieves satisfactory results, it is not without
 shortcomings. Some of the shortcomings of the current approach are outlined
 below, along with ideas for improving the algorithm:
 
-* The current approach assumes that the lane curve does not have multiple peaks
-  or troughs. For some winding roads a second order polynomial may not be adequate
+* The current approach assumes that the lane shape does not have multiple peaks
+  or troughs. For some winding roads, a second order polynomial may not be adequate
   to capture the shape of the lane correctly. One way to make the current algorithm
   more robust is to use cubic splines or multiple curves to accurately capture
   highly winding roads.
@@ -354,14 +361,14 @@ below, along with ideas for improving the algorithm:
 * If there are sharp turns in the road, the lanes will fall outside the masked
   region of interest and will not be captured.  To handle these situations it
   may be necessary to expand the region of interest to include the entire
-  horizontal span of the image and only exclude some of the top region. This
+  horizontal span of the image. This
   will require more robust techniques to distinguish between edges belonging to
-  lane lines and other objects or markings.
+  lane lines and other objects (e.g., cars) or structures (lane dividers).
 
 * The present approach does not use information from previous video frames when
   computing the lane lines for the current video frame. Using information from
   previous frames can be used save computational effort but can also help in
   mitigate the effect of new road structures or markings that suddenly pop up
   and disrupt the accurate calculation of lane lines. This will also prove
-  helpful in scenarios where the lane lines are covered by leaves or rendered
-  indistinguishable due to strong lighting or other factors.
+  helpful in scenarios where the lane lines are temporarily covered by leaves
+  or rendered indistinguishable due to strong lighting or other factors.
