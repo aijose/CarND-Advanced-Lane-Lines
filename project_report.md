@@ -18,7 +18,7 @@ The goals / steps of this project are the following:
 The code for this project can be found in the [jupyter
 notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 that is included in the [project
-repository](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb).
+repository](https://github.com/aijose/CarND-Advanced-Lane-Lines/).
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
 
@@ -66,7 +66,7 @@ calibration notebook at this
 
 ### Pipeline (single images)
 
-To describe the pipeline, the images generated at each step will be provided. The results will be generated for the following image:
+While describing the pipeline, images generated at each step will be provided. The results will be generated for the following image:
 
 <p align="center">
 <img src="report_images/original_image.png" width="75%" alt>
@@ -80,7 +80,7 @@ To describe the pipeline, the images generated at each step will be provided. Th
 In the previous section, the camera calibration procedure was outlined. The
 matrix obtained during the calibration step can be used to undistort images by
 using the `cv2.undistort()` function. When distortion correction is applied to
-the original image, the following undistorted image was obtained.
+the original image, the following undistorted image was obtained:
 
 <p align="center">
 <img src="report_images/undistorted.png" width="75%" alt>
@@ -101,7 +101,7 @@ The code snippet for performing distortion correction is provided below:
 undst = cv2.undistort(image, mtx, dist, None, mtx)
 ```
 
-In the above code snippet, the matrix `mtx` was obtained in the camera
+In the above code snippet, the matrix, `mtx`, was obtained in the camera
 calibration step described earlier.
 
 #### 2. Describe how (and identify where in your code) you used color transforms, gradients or other methods to create a thresholded binary image.  Provide an example of a binary image result.
@@ -113,21 +113,20 @@ converted to grayscale to perform this operation. However, using specific color
 channels in the RGB (Red, Blue, Green) or HLS representation of the image    can
 provide additional room for optimizing the edge detection process. In the
 present work, binary images were generated for the R-channel, S-channel and
-Sobel X-gradient by applying thresholds. These were used as the basis for coming
+Sobel X-gradient by applying thresholds. These were used to come
 up with a combined binary image that includes the important features of the
 image while minimizing the less relevant features. Based on experiments
-performed on the aforementioned three channels the following key points
-may be noted:
+performed on the aforementioned three channels, the following key points
+may be noted about the pros and cons of using each channel:
 
 * **S channel:**
 
   * **Good:** It does a good job of retaining lane lines
     while being color agnostic.
 
-  * **Bad:** It is not as effective as the Sobel X-gradient filter in capturing lane
-    lines that are thin. Using the S-channel alone can therefore ignore some of
-    the dashed lane lines in some of the video frames, which could lead to
-    failure of the algorithm.
+  * **Bad:** It is not as effective as the Sobel X-gradient filter in capturing
+    lane lines that are weak/thin. Using the S-channel alone can therefore ignore some of
+    the dashed lane lines in some of the video frames.
 
 * **Sobel Gradient:**
 
@@ -147,7 +146,7 @@ may be noted:
   * **Bad:** It tends to retain all regions that contain red component and does not
     identify gradients.
 
-Setting the thresholds for the red channel, Sobel gradient and S-channels and
+Setting the thresholds for the red channel, Sobel X-gradient and S-channels and
 finding a way to combine them to capture relevant edges while ignoring
 irrelevant details required some experimentation. In the present work the following
 steps were followed to form a combined binary image of the edges:
@@ -155,7 +154,7 @@ steps were followed to form a combined binary image of the edges:
 * Three binary images were created -- Red, S-channel, Sobel X-gradient -- by
   applying suitable thresholds based on experimentation.
 
-* The final binary image was formed by including performing an AND (&) operator
+* The final binary image was formed by performing an AND (&) operator
   between the Red binary and the S-binary and combining the result with
   the Sobel binary using an OR (|) operator. Further discussion of some of the
   challenges faced in this process and the motivation behind the choices made
@@ -167,14 +166,14 @@ vehicles by choosing a region of interest in the image where we expect the lane
 lines to be present. This is based on the assumption that the position of the
 lane lines with respect to the vehicle camera does not change much. A
 quadrilateral region was selected and all edges outside this region were
-blanked out. The resultant images are shown below:
+blanked out. The resulting images are shown below:
 
 <p align="center">
 <img src="report_images/edges.png" width="45%" alt>
 <img src="report_images/masked_image.png" width="45%" alt>
 </p>
 <p align="center">
-<em> Thresholded (left) and masked image (right) obtained by applying color transforms and gradients </em>
+<em> Thresholded full image (left) and masked image (right) obtained by applying color transforms and gradients </em>
 </p>
 
 The code for this section can be found in functions `edge_thresholds()` and
@@ -184,11 +183,11 @@ notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipy
 
 #### 3. Describe how (and identify where in your code) you performed a perspective transform and provide an example of a transformed image.
 
-The masked image obtained in the previous step is a view of the lanes when seen
-from the front. Because of the angle of the camera with respect to the road, the left lane typically appears to have a positive slope while the right lane appears to have a negative slope. In order to capture the lane properties such as the radius of curvature, it is necessary to have a top view of the road. This can be accomplished using a perspective transform.
+The masked image obtained in the previous step is a view of the road when seen
+from the car. Because of the angle of the camera with respect to the road, the left lane typically appears to have a positive slope while the right lane appears to have a negative slope. In order to capture lane properties such as the radius of curvature, it is necessary to have a top (birds-eye) view of the road. This can be accomplished using a perspective transform.
 
 In order to perform a perspective transform, a quadrilateral region in the
-original image is mapped onto a rectangular region in the transformed image. One
+original image is mapped onto a rectangular region in the transformed (birds-eye) image. One
 way to choose four points (source points) is to take a sample image and identify
 points on a lane line. We then map these points on to a rectangular
 region, specified by four destination points. The relevant code for this
@@ -236,7 +235,7 @@ The first window is placed at the bottom of the image with its center at the
 locations corresponding to the histogram peaks. If the number of pixels in a
 window exceeds a threshold (which implies that there is a legitimate segment of
 the lane in the window) the average x-coordinate of white pixels in the window
-is computed. The center of the next lane window is then adjusted to match averaged
+is computed. The center of the next lane window is then adjusted to match the averaged
 x-coordinate of its predecessor window. This ensures that the windows adjusts to
 the lane location if there is significant curvature.
 
@@ -246,7 +245,7 @@ the y-location is treated as the independent variable and the x-location is
 treated as the independent variable for fitting the polynomial. To compute the
 radius of curvature of the lane, the middle line for the lane needs to be computed.
 This was obtained by averaging the fitted x-coordinates of the left and right
-lanes. The figure below shows the results obtained.
+lanes. The figure below shows the results obtained:
 
 <p align="center">
 <img src="report_images/windowed_image.png" width="45%">
@@ -292,9 +291,9 @@ notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipy
 
 Once the lane regions are identified on the top view image, they are mapped
 back onto a blank image that has the same dimensions as the original image using
-the inverse perspective transform. The resultant image is then weighted with the
+the inverse perspective transform. The resulting image is then weighted with the
 original image to obtain the final result that contains the lane region
-highlighted in green. The resulting image is shown below:
+highlighted in green. The final image is shown below:
 
 <p align="center">
 <img src="report_images/weighted_image.png" width="75%">
@@ -314,7 +313,7 @@ the [jupyter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/
 
 #### 1. Provide a link to your final video output.  Your pipeline should perform reasonably well on the entire project video (wobbly lines are ok but no catastrophic failures that would cause the car to drive off the road!).
 
-Once the procedure for processing a single image was formulated, the same
+Once the procedure for processing a single image is formulated, the same
 approach can be used to process a video by processing the individual images that
 constitute the video. A link to the processed video is provided below:
 [![IMAGE ALT TEXT HERE](report_images/youtube_video_image.png)](https://youtu.be/MZcdxmrmI9c)
