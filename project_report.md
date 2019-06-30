@@ -17,7 +17,7 @@ The goals / steps of this project are the following:
 
 The code for this project can be found in the [jupyter
 notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
-that is part of the [project
+that is included in the [project
 repository](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb).
 
 ## [Rubric](https://review.udacity.com/#!/rubrics/571/view) Points
@@ -119,38 +119,47 @@ noted:
 
 * **S channel:**
 
-  * Good: It does a good job of identifying the lane lines. While ignoring
+  * **Good:** It does a good job of identifying the lane lines. While ignoring
     lighter shades in the road. This makes it useful for retaining lane lines
     while ignoring irrelevant colors in the road or background.
 
-  * Bad: It is not as effective as the Sobel gradient filter in capturing lane
+  * **Bad:** It is not as effective as the Sobel gradient filter in capturing lane
     lines that are thin. Using the S-channel alone can therefore ignore some of
     the dashed lines in some of the video frames, thereby leading to failure of
     the algorithm.
 
 * **Sobel Gradient:**
 
-  * Good: It is very effective in capturing gradients in the image while
+  * **Good:** It is very effective in capturing gradients in the image while
     ignoring regions that do not contain gradients.
 
-  * Bad: Because it is good in picking up gradients, it can also pickup
+  * **Bad:** Because it is good in picking up gradients, it can also pickup
     gradients that that are not necessarily lane lines (e.g, sharp lines
     on the road)
 
 * **Red Channel:**
 
-  * Good: Since red is a component in both white and yellow colors (which are
+  * **Good:** Since red is a component in both white and yellow colors (which are
     the colors of the lanes) it can be used in combination with other filters
     to exclude regions that are not lanes while retaining edges that are lanes.
 
-  * Bad: It tends to retain all regions that contain red component and does not
+  * **Bad:** It tends to retain all regions that contain red component and does not
     identify gradients.
 
 Setting the thresholds for the red channel, Sobel gradient and S-channels and
 finding a way to combine them to capture relevant edges while ignoring
-irrelevant details required some experimentation. Further discussion of some of
-the challenges faced in this process is discussed i the later part of this
-report.
+irrelevant details required some experimentation. In the present work the following
+steps were followed to form a combined binary image of the edges:
+
+* Three channel/filter images were created -- Red, S-channel, Sobel gradient
+
+* Suitable thresholds were applied to create a binary image for each channel by
+  experimenting with test images.
+
+* The final binary image was formed by including performing and AND (&) operator
+  between the Red channel and the S-channel and combining the result with
+  the Sobel binary image using an OR (|) operator. Further discussion of some of the challenges faced in this process and the motivation behind the choices made
+  is provided in the later part of this report.
 
 The edge detection algorithm captures all edges. Since we are only interested
 in the lane lines, we can eliminate edges associated with background and
@@ -332,9 +341,9 @@ along with a description of how they were addressed:
   lane lines. To overcome this the lower Sobel threshold was increased
   sufficiently exclude the dark lines while retaining lane lines.
 
-While the current project achieves satisfactory results, it is not perfect. Some
-of the shortcomings of the current approach are outlined below, along with ideas
-for improving the algorithm:
+While the current project achieves satisfactory results, it is not without
+shortcomings. Some of the shortcomings of the current approach are outlined
+below, along with ideas for improving the algorithm:
 
 * The current approach assumes that the lane curve does not have multiple peaks
   or troughs. For some winding roads a second order polynomial may not be adequate
