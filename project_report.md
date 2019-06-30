@@ -249,8 +249,8 @@ This was obtained by averaging the fitted x-coordinates of the left and right
 lanes. The figure below shows the results obtained.
 
 <p align="center">
-<img src="output_images/windowed_image.png" width="45%">
-<img src="output_images/topview_region.png" width="45%">
+<img src="report_images/windowed_image.png" width="45%">
+<img src="report_images/topview_region.png" width="45%">
 </p>
 <p align="center">
 <em> Lane lines and lane regions plotted on top view image </em>
@@ -297,7 +297,7 @@ original image to obtain the final result that contains the lane region
 highlighted in green. The resulting image is shown below:
 
 <p align="center">
-<img src="output_images/weighted_image.png" width="75%">
+<img src="report_images/weighted_image.png" width="75%">
 </p>
 <p align="center">
 <em> Lane region shaded in top view (left) and original image (right)  </em>
