@@ -128,16 +128,16 @@ noted:
     the dashed lines in some of the video frames, thereby leading to failure of
     the algorithm.
 
-* **Sobel Gradient:** 
+* **Sobel Gradient:**
 
   * Good: It is very effective in capturing gradients in the image while
     ignoring regions that do not contain gradients.
 
   * Bad: Because it is good in picking up gradients, it can also pickup
-    gradients that that are not necessarily lane lines (e.g, sharp lines 
+    gradients that that are not necessarily lane lines (e.g, sharp lines
     on the road)
 
-* **Red Channel:** 
+* **Red Channel:**
 
   * Good: Since red is a component in both white and yellow colors (which are
     the colors of the lanes) it can be used in combination with other filters
@@ -191,7 +191,7 @@ src = np.float32([[600, 444], [675, 444], [1041, 676], [268, 676]])
 offsetv = 0
 offseth = 300
 img_size = (image.shape[1], image.shape[0])
-dst = np.float32([[offseth,             offsetv], 
+dst = np.float32([[offseth,             offsetv],
                   [img_size[0]-offseth, offsetv],
                   [img_size[0]-offseth, img_size[1]-offsetv],
                   [offseth,             img_size[1]-offsetv]])
@@ -302,10 +302,9 @@ the [jupyter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/
 Once the procedure for processing a single image was formulated, the same
 approach can be used to process a video by processing the individual images that
 constitute the video. A link to the processed video is provided below:
+[![IMAGE ALT TEXT HERE](report_images/youtube_video_image.png)](https://youtu.be/MZcdxmrmI9c)
 
-Here's a [link to my video result](./project_video.mp4)
-
-The code processing the video can be found in the section **Create Video** section of
+The code for processing the video can be found in the section **Create Video** section of
 the [jupyter notebook](https://github.com/aijose/CarND-Advanced-Lane-Lines/blob/master/P2.ipynb)
 
 ---
