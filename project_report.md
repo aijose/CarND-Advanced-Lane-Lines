@@ -299,7 +299,7 @@ highlighted in green. The final image is shown below:
 <img src="report_images/weighted_image.png" width="75%">
 </p>
 <p align="center">
-<em> Lane region shaded in top view (left) and original image (right)  </em>
+<em> Lane region shaded in green on the original image  </em>
 </p>
 
 The code outlining all the steps in the pipeline for generating the final  image
